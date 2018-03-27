@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>File Transfer App</title>
+    <style media="screen">
+
+    body {
+      display: flex;
+      min-height: 100vh;
+      width:100%;
+      padding: 0;
+      margin:0;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+    
+    h1 {
+        color: #000;
+    }
+
+    #uploader {
+      /*-webkit-appearance: none;*/
+        /*appearance: none;*/
+      width: 50%;
+      margin-bottom: 10px;
+    }
+    </style>
+
+    <link rel="stylesheet" type="text/css" href="assets/css/style.css">
+  </head>
+
+
+  <body>
+
+    <h1 id="header">Transfer Files</h1>
+    
+    <div class="container">
+        <input id="txtEmail" type="email" placeholder="Email">
+
+        <input id="txtPassword" type="Password" placeholder="Password">
+
+        <button id="btnLogin" class="btn btn-action">Log in</button>
+
+        <button id="btnSignUp" class="btn btn-secondary">Sign up</button>
+
+        <button id="btnLogout" class="btn btn-action hide">Log out</button>
+    </div>
+
+    <progress value="0" max="100" id="uploader">0%</progress>
+    <input type="file" value="upload" id="uploadFileButton" />
+    <input type="button" value="list downloads" id="listDownloads" />
+    <input type="button" value="upload userKeys (pub/priv)" id="uploadKeys" />
+
+
+    <script src="https://www.gstatic.com/firebasejs/4.12.0/firebase.js"></script>
+
+    <!--Repository: https://github.com/wwwtyro/cryptico/-->
+    <script language="JavaScript" type="text/javascript" src="assets/js/Cryptico/jsbn.js"></script>
+    <!--<script language="JavaScript" type="text/javascript" src="assets/js/Cryptico/cryptico.js"></script>-->
+    <script language="JavaScript" type="text/javascript" src="assets/js/Cryptico/random.js"></script>
+    <script language="JavaScript" type="text/javascript" src="assets/js/Cryptico/hash.js"></script>
+    <script language="JavaScript" type="text/javascript" src="assets/js/Cryptico/rsa.js"></script>
+    <script language="JavaScript" type="text/javascript" src="assets/js/Cryptico/aes.js"></script>
+    <script language="JavaScript" type="text/javascript" src="assets/js/Cryptico/api.js"></script>
+
+    <script src="assets/js/app.js"></script>
+  </body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
