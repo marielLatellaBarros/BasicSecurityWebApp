@@ -2,56 +2,73 @@
 <html>
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="assets/css/flatlyTheme-bootstrap.min.css">
     <title>File Transfer App</title>
-    <style media="screen">
-
-    body {
-      display: flex;
-      min-height: 100vh;
-      width:100%;
-      padding: 0;
-      margin:0;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-    }
-    
-    h1 {
-        color: #000;
-    }
-
-    #uploader {
-      /*-webkit-appearance: none;*/
-        /*appearance: none;*/
-      width: 50%;
-      margin-bottom: 10px;
-    }
-    </style>
-
-    <link rel="stylesheet" type="text/css" href="assets/css/style.css">
   </head>
 
 
   <body>
+  <div id="page">
 
-    <h1 id="header">Transfer Files</h1>
-    
-    <div class="container">
-        <input id="txtEmail" type="email" placeholder="Email">
+    <header class="container">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand" href="#">File Transfer</a>
+      </nav>
+    </header>
 
-        <input id="txtPassword" type="Password" placeholder="Password">
 
-        <button id="btnLogin" class="btn btn-action">Log in</button>
+    <section id="body" class="container">
 
-        <button id="btnSignUp" class="btn btn-secondary">Sign up</button>
+      <div class="jumbotron">
+        <form lpformnum="1">
 
-        <button id="btnLogout" class="btn btn-action hide">Log out</button>
-    </div>
+            <legend>Sign In</legend>
 
-    <progress value="0" max="100" id="uploader">0%</progress>
-    <input type="file" value="upload" id="uploadFileButton" />
-    <input type="button" value="list downloads" id="listDownloads" />
-    <input type="button" value="upload userKeys (pub/priv)" id="uploadKeys" />
+            <div class="form-group">
+              <label for="emailInput">Email address</label>
+              <input type="email" class="form-control" id="emailInput" aria-describedby="emailHelp" placeholder="my.email@example.com">
+              <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+            </div>
+            <div class="form-group">
+              <label for="passwordInput">Password</label>
+              <input type="password" class="form-control" id="passwordInput" placeholder="Password">
+            </div>
+
+
+            <button type="button" class="btn btn-primary" id="btnLogin">Log In</button>
+            <button type="button" class="btn btn-secondary" id="btnLogout">Log Out</button>
+            <button type="button" class="btn btn-success" id="btnSignUp">Sign Up</button>
+          </fieldset>
+        </form>
+      </div>
+
+        <div class="jumbotron">
+        <form>
+          <fieldset>
+            <legend>Transfer file</legend>
+
+              <div class="form-group">
+                  <input type="button" value="upload userKeys (pub/priv)" id="uploadKeys" />
+              </div>
+
+              <div class="form-group">
+                  <input type="file" class="form-control-file" id="uploadFileButton" aria-describedby="fileHelp"value="upload"/>
+              </div>
+
+              <div class="form-group">
+                  <input type="button" value="list downloads" id="listDownloads" />
+              </div>
+
+          </fieldset>
+        </form>
+      </div>
+
+    </section>
+
+
+  </div>
+
 
 
     <script src="https://www.gstatic.com/firebasejs/4.12.0/firebase.js"></script>
