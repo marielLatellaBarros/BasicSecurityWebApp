@@ -20,8 +20,8 @@
 
 
     // Get all DOM-elements from html
-    const txtEmail = document.getElementById('txtEmail');
-    const txtPassword = document.getElementById('txtPassword');
+    const emailInput = document.getElementById('emailInput');
+    const passwordInput = document.getElementById('passwordInput');
     const btnLogin = document.getElementById('btnLogin');
     const btnSignUp = document.getElementById('btnSignUp');
     const btnLogout = document.getElementById('btnLogout');
@@ -46,8 +46,8 @@
 
         // Get email and password
         //TODO: check for real emails
-        const email = txtEmail.value;
-        const pass = txtPassword.value;
+        const email = emailInput.value;
+        const pass = passwordInput.value;
 
     	// Create user with email and password
     	const promise = defaultAuthentication.createUserWithEmailAndPassword(email,pass);
@@ -60,8 +60,8 @@
 
         // Get email and password
         //TODO: check for real emails
-        const email = txtEmail.value;
-        const pass = txtPassword.value;
+        const email = emailInput.value;
+        const pass = passwordInput.value;
 
         // Sign in
         const promise = defaultAuthentication.signInWithEmailAndPassword(email,pass);
@@ -125,7 +125,7 @@
 
 
 
-    //*** GENERATE SYMMETRIC KEY AND STORE IN DATABASE. ENCRYPT FILE AND UPLOAD TO "FIREBASE STORAGE" ***//
+    //*** GENERATE SYMMETRIC KEY AND STORE IT IN THE DATABASE. ENCRYPT FILE AND UPLOAD TO "FIREBASE STORAGE" ***//
 
     // Listen for file upload selection
     uploadFileButton.addEventListener('change', function(e) {
@@ -178,10 +178,7 @@
         // Update progress bar
         uploadTask.on('state_changed',
 
-            function progress(snapshot) { //state changes are represented by snapshots
-                uploader.value = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            }
-            ,function error(err) {
+            function error(err) {
                 console.log('error');
                 console.log(err);
             },
