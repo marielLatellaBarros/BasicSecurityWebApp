@@ -115,17 +115,38 @@
         //*** GENERATE PRIVATE AND PUBLIC KEYS ***//
 
         // Generate private key (returns an RSA object)
-        privKeyObj = cryptico.generateRSAKey(passwordInput.value, 1024);
+        privKeyObj = generateRSAKey();
 
         // Convert private key object to string
-        //TODO: CHECK: privKeyString returns no string in console.log!
-        // let privKeyString = cryptico.bytes2string(privKeyObj);
-        // console.log("Private key (stringified) is: " + privKeyString);
+        let N = cryptico.b16to64(privKeyObj.n.toString(16));
+        let E = cryptico.b16to64(privKeyObj.e.toString(16));
+        let D = cryptico.b16to64(privKeyObj.d.toString(16));
 
-        let privKeyString = JSON.stringify(privKeyObj);
+        let P = cryptico.b16to64(privKeyObj.p.toString(16));
+        let Q = cryptico.b16to64(privKeyObj.q.toString(16));
+        let DP = cryptico.b16to64(privKeyObj.dmp1.toString(16));
+        let DQ = cryptico.b16to64(privKeyObj.dmq1.toString(16));
+        let C = cryptico.b16to64(privKeyObj.coeff.toString(16));
+        let privKeyData = {
+            N: N,
+            E: E,
+            D: D,
+            P: P,
+            Q: Q,
+            DP: DP,
+            DQ: DQ,
+            C: C
+        };
+
+        privKeyString = JSON.stringify(privKeyData);
         console.log("Private key (JSON) is: " + privKeyString);
 
-        // Generate public key (returns a string)
+        let symmetricUserKey = generateSymmetricUserKey(passwordInput.value);
+        console.log("Symmetric key for this user is: " + symmetricUserKey);
+        var encryptedPrivateKey = cryptico.encryptAESCBC(privKeyString, symmetricUserKey);
+        console.log("Encrypted Private key (JSON) is: " + encryptedPrivateKey);
+
+        // Generate public key from private key (returns a string)
         pubKeyString = cryptico.publicKeyString(privKeyObj);
         console.log("Public key is: " + pubKeyString);
 
@@ -134,29 +155,44 @@
 
         // Call function to write userID + keys to database
         let user = defaultAuthentication.currentUser;
-        writeKeyData(user.email, privKeyString, pubKeyString);
+        writeKeyData(user.uid, user.email, encryptedPrivateKey, pubKeyString);
     });
 
+    function generateRSAKey() {
+        var rsa = new RSAKey();
+        rsa.generate(1024, "03");
+        return rsa;
+    }
 
-
-
+    function generateSymmetricUserKey(password) {
+        Math.seedrandom(sha256.hex(password));
+        var key = new Array(32);
+        var r = new SeededRandom();
+        r.nextBytes(key);
+        return key;
+    }
 
     // Create a json entry as a child of branch "keys" with unique identifier "push()"
     // and stores it in the Firebase Database
-    function writeKeyData(email, privateK, publicK) {
+    function writeKeyData(userId, email, privateK, publicK) {
         let postData = {
             email: email,
-            privateKey: privateK,
+            userId: userId,
             publicKey: publicK
         };
-        defaultDatabase.ref().child('keys').push().set(postData);
+        defaultDatabase.ref('public_keys/' + userId).set(postData);
         console.log("Saved" + postData); //TODO: postdata shows nothing in log?
+
+
+        let postPrivateData = {
+            email: email,
+            privateKey: privateK
+        };
+        defaultDatabase.ref('private_keys/' + userId).set(postPrivateData);
+        console.log("Saved" + postPrivateData); //TODO: postdata shows nothing in log?
     }
 
     ////////// **********  PRIVATE & PUBLIC KEYS **********//////////
-
-
-
 
 
 
@@ -169,9 +205,6 @@
     // Listen for file selection
     selectFileButton.addEventListener('change', function(e) {
 
-
-
-
         //*** GENERATE SYMMETRIC KEY***//
 
         // Generate random symmetric key
@@ -182,31 +215,43 @@
         symmKeyString = cryptico.bytes2string(symmKeyObj);
         console.log("Symmetric key (stringified) is: " + symmKeyString);
 
+        loadPublicKey(recipientEmail.value, function(publicKey, userIdPublicKey) {
+            continueEncrypting(e.target.files[0], publicKey, userIdPublicKey);
+        });
+        // End Retrieve the public key of the recipient
+    });
 
+    function loadPublicKey(emailUser, callback) {
+        // Retrieve the public key of the recipient
+        defaultDatabase.ref('public_keys').once('value', function(snapshot) {
+
+            snapshot.forEach(function(childSnapshot) {
+
+                var value = childSnapshot.val();
+                var keyId = childSnapshot.key;
+                console.log(keyId + ' - ' + value.email + ' - '+ value.publicKey);
+
+                if(value.email === emailUser) {
+                    let publicKey = value.publicKey;
+                    let userId = value.userId;
+
+                    var publicKeyObj = cryptico.publicKeyFromString(publicKey);
+                    callback(publicKeyObj, userId);
+                }
+            });
+        });
+    }
+
+    function continueEncrypting(file, publicKeyRecipient, userIdRecipient) {
         //*** GET/ READ FILE***//
-
-        // Get file
-        var file = e.target.files[0];
 
         // The HTML5 FileReader object allows to read the contents of the selected file
         var reader = new FileReader();
 
         // After the reader finished reading the file do the following:
         reader.onload = function (e) {
-            defaultDatabase.ref('keys').once('value', function(snapshot) {
 
-                snapshot.forEach(function(childSnapshot) {
 
-                    var key = childSnapshot.val();
-                    var keyId = childSnapshot.key;
-                    console.log(keyId + ' - ' + key.email + ' - '+ key.publicKey);
-
-                    if(key.email === recipientEmail.value) {
-                        pubKeyString = key.publicKey;
-                    }
-
-                });
-            });
 
             //*** ENCRYPTION AND HASHING ***//
 
@@ -215,42 +260,43 @@
             var fileEncrypted = cryptico.encryptAESCBC(plaintext, symmKeyObj);
             console.log("File encrypted: " + fileEncrypted);
 
-            // TODO retrieve puboic key from recipient
-
             // Encrypt the symmetric key => Symm'
-            var pubKeyObj = cryptico.publicKeyFromString(pubKeyString);
-            var symmKeyEncrypted = cryptico.b16to64(pubKeyObj.encrypt(symmKeyString));
+            var symmKeyEncrypted = cryptico.b16to64(publicKeyRecipient.encrypt(symmKeyString));
             console.log("SymKey encrypted: " + symmKeyEncrypted);
 
             // Hash the original file => FileHash
             var fileHashed = SHA256(plaintext);
             console.log("File hashed: " + fileHashed);
 
+            let user = defaultAuthentication.currentUser;
+            loadPrivateKeyUser(user.uid, function() {
+                let fileHashedSigned = privKeyObj.signStringWithSHA256(fileHashed);
+                console.log("Filehash signed: " + fileHashedSigned);
 
+                //*** CALL FUNCTION TO STORE RESULTS IN THE DATABASE & STORAGE***//
+                upload(userIdRecipient, user.email, file.name, fileEncrypted, symmKeyEncrypted, fileHashedSigned);
+            })
 
-            //*** CALL FUNCTION TO STORE RESULTS IN THE DATABASE & STORAGE***//
-            upload(file.name, fileEncrypted, symmKeyEncrypted, fileHashed);
         };
 
         // This will encode the contents of the file into a data-uri.
         // It will trigger the onload handler above, with the result
         reader.readAsDataURL(file);
-    });
+    }
 
 
     //*** STORE ENCRYPTED FILE IN STORAGE AND THE REST IN THE DATABASE ***//
-    function upload(fileName, fileEnc, symmKeyEnc, fileHash) {
+    function upload(userIdRecipient, emailSender, fileName, fileEnc, symmKeyEnc, fileHash) {
 
         // Create a storage reference for files=> defaultStorage.ref('folder_name/file_name');
         // fileName is a pointer (reference) to where the actual file will be saved
-        var storageRef = defaultStorage.ref('transfer_files/' + fileName);
+        var storageRef = defaultStorage.ref('transfer_files/' + userIdRecipient +'/' + fileName);
 
         // Upload the file, and if it is successful then add the symmKeyEnc and file Hash to Database
         storageRef.putString(fileEnc)
             .then(function(snapshot) {
                 console.log('complete');
-                var user = defaultAuthentication.currentUser;
-                writeFileData(user.uid, fileName, symmKeyEnc, fileHash);
+                writeFileData(userIdRecipient, emailSender, fileName, symmKeyEnc, fileHash);
             });
     }
 
@@ -260,14 +306,15 @@
 
     // Create a json entry as a child of branch "files" with unique identifier "push()"
     // and stores it in the Firebase Database
-    function writeFileData(userId, fileName, symmKeyEnc, fileHash) {
+    function writeFileData(userIdRecipient, emailSender, fileName, symmKeyEnc, fileHash) {
         var postData = {
-                userId: userId,
+                userIdRecipient: userIdRecipient,
                 fileName: fileName,
                 symmetricKey: symmKeyEnc,
-                fileHash: fileHash
+                fileHash: fileHash,
+                sender: emailSender
         };
-        defaultDatabase.ref().child('files').push().set(postData);
+        defaultDatabase.ref().child('files/' + userIdRecipient).push().set(postData);
         console.log("Saved" + postData); //TODO: postdata shows nothing in log?
     }
 
@@ -289,40 +336,93 @@
     // Listen for file download selection and show result in the console (all files) as "fileID - fileName - userID"
     listDownloads.addEventListener('click', function(e) {
 
-        defaultDatabase.ref('files').once('value', function(snapshot) {
+        let user = defaultAuthentication.currentUser;
+        loadPrivateKeyUser(user.uid, function() {
+            continueDecrypting(user.uid)
+        });
+
+    });
+
+    function loadPrivateKeyUser(userId, callback) {
+
+        // Make sure the private key of logged in user is known
+        defaultDatabase.ref('/private_keys/' + userId).once('value').then(function(snapshot) {
+
+            let encryptedPrivateKey = snapshot.val().privateKey;
+
+            //The server is not allowed to see this key, otherwise the server is able to decrypt the file, which we don't want.
+            let symmetricUserKey = generateSymmetricUserKey(passwordInput.value);
+            console.log("Symmetric key for this user is: " + symmetricUserKey);
+
+            var privateKeyString = cryptico.decryptAESCBC(encryptedPrivateKey, symmetricUserKey);
+
+            let privateKeyData = JSON.parse(privateKeyString);
+
+            var rsa = new RSAKey();
+            rsa.setPrivateEx(cryptico.b64to16(privateKeyData.N),
+                cryptico.b64to16(privateKeyData.E),
+                cryptico.b64to16(privateKeyData.D),
+                cryptico.b64to16(privateKeyData.P),
+                cryptico.b64to16(privateKeyData.Q),
+                cryptico.b64to16(privateKeyData.DP),
+                cryptico.b64to16(privateKeyData.DQ),
+                cryptico.b64to16(privateKeyData.C));
+
+            privKeyObj = rsa;
+            if(privKeyObj) {
+                callback();
+            }
+        });
+    }
+
+    function continueDecrypting(userId) {
+        defaultDatabase.ref('files/' + userId).once('value', function(snapshot) {
 
             snapshot.forEach(function(childSnapshot) {
 
                 var file = childSnapshot.val();
                 var fileID = childSnapshot.key;
-                console.log(fileID + ' - ' + file.fileName + ' - '+ file.userId + '- ' + file.fileHash + ' - ' + file.symmetricKey);
+                console.log(fileID + ' - ' + file.fileName + ' - '+ file.sender +' - '+ file.userIdRecipient + '- ' + file.fileHash + ' - ' + file.symmetricKey);
 
-                var storageRef = defaultStorage.ref('transfer_files/' + file.fileName);
+                loadPublicKey(file.sender, function(publicKeySender, userIdPublicKey) {
 
-                storageRef.getDownloadURL().then(function(url){
+                    var storageRef = defaultStorage.ref('transfer_files/' + userId + '/' + file.fileName);
 
-                    console.log(url);
+                    storageRef.getDownloadURL().then(function(url){
 
-                    // This can be downloaded directly:
-                    var xhr = new XMLHttpRequest();
-                    xhr.responseType = 'text';
-                    xhr.onload = function(event) {
-                        var text = xhr.response;
+                        console.log(url);
 
-                        console.log(text);
+                        // This can be downloaded directly:
+                        var xhr = new XMLHttpRequest();
+                        xhr.responseType = 'text';
+                        xhr.onload = function(event) {
+                            var text = xhr.response;
 
-                        decryptFile(text, file.symmetricKey)
-                    };
-                    xhr.open('GET', url);
-                    xhr.send();
+                            console.log(text);
+
+                            fileDecrypted = decryptFile(text, file.symmetricKey);
+
+                            // verify the Hash
+                            var fileHashed = SHA256(fileDecrypted);
+
+                            if(publicKeySender.verifyString(fileHashed, file.fileHash)) {
+
+                                downloadFile(file.fileName, fileDecrypted);
+                            } else {
+                                // TODO: pretty error message
+                                console.log("File hash mismatch!!!!");
+                            }
+                        };
+                        xhr.open('GET', url);
+                        xhr.send();
+                    });
                 });
 
             });
         });
-    })
+    }
 
     function decryptFile(text, encryptedSymmetricKey) {
-
         var symmetricKeyString = privKeyObj.decrypt(cryptico.b64to16(encryptedSymmetricKey));
         var symmetricKey = cryptico.string2bytes(symmetricKeyString);
 
@@ -331,6 +431,21 @@
         var fileDecrypted = cryptico.decryptAESCBC(text, symmetricKey);
 
         console.log(fileDecrypted);
+
+        return fileDecrypted;
+    }
+
+    function downloadFile(filename, text) {
+        var element = document.createElement('a');
+        element.setAttribute('href', text);
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
     }
 
     ////////// **********  DECRYPTION **********//////////
