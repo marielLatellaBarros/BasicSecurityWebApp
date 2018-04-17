@@ -30,7 +30,6 @@
     const btnLogout = document.getElementById('btnLogout');
 
     // Get DOM-elements for storage and database
-    let uploadKeys = document.getElementById('uploadKeys');
     let selectFileButton = document.getElementById('selectFileButton');
     let listDownloads = document.getElementById('listDownloads');
 
@@ -61,20 +60,20 @@
         const email = emailInput.value; //TODO: Check email validation
         const pass = passwordInput.value; //TODO: Check password validation
 
-    	// Create user with email and password
-    	const promise = defaultAuthentication.
-                        createUserWithEmailAndPassword(email,pass);
-    	promise.catch(e =>
-            console.log(e.message));
+        // Create user with email and password
+        defaultAuthentication.createUserWithEmailAndPassword(email, pass)
+            .then(e => {
+                uploadKeys();
 
-    	//TODO: add uploadKeys function
-    	// uploadKeys();
+                btnLogout.style.visibility = "visible";
+                btnSignUp.style.visibility = "hidden";
+                btnLogin.style.visibility = "hidden";
 
-        btnLogout.style.visibility = "visible";
-        btnSignUp.style.visibility = "hidden";
-        btnLogin.style.visibility = "hidden";
+                console.log("User signed up");
+            })
+            .catch(e =>
+                console.log(e.message));
 
-        console.log("User signed up");
     });
 
     // Add login event
@@ -85,29 +84,30 @@
         const pass = passwordInput.value; //TODO: Check password validation
 
         // Sign in
-        const promise = defaultAuthentication.
-                        signInWithEmailAndPassword(email,pass);
-        promise.catch(e =>
-            console.log(e.message));
+        const promise = defaultAuthentication.signInWithEmailAndPassword(email, pass);
+        promise
+            .then(e => {
+                btnLogout.style.visibility = "visible";
+                btnSignUp.style.visibility = "hidden";
+                btnLogin.style.visibility = "hidden";
 
-        btnLogout.style.visibility = "visible";
-        btnSignUp.style.visibility = "hidden";
-        btnLogin.style.visibility = "hidden";
-
-        console.log("User signed in");
+                console.log("User signed in");
+            })
+            .catch(e =>
+                console.log(e.message));
     });
 
     // Add signout event
     btnLogout.addEventListener('click', e => {
-        defaultAuthentication.signOut();
+        defaultAuthentication.signOut().then(e => {
+            btnLogout.style.visibility = "hidden";
+            btnSignUp.style.visibility = "visible";
+            btnLogin.style.visibility = "visible";
 
-        btnLogout.style.visibility = "hidden";
-        btnSignUp.style.visibility = "visible";
-        btnLogin.style.visibility = "visible";
-
-        emailInput.value = "";
-        passwordInput.value = "";
-        console.log("User signed out");
+            emailInput.value = "";
+            passwordInput.value = "";
+            console.log("User signed out");
+        });
     });
 
     //TODO: log out button via FIREBASE?
@@ -134,13 +134,7 @@
 
 
     ////////// **********  PRIVATE & PUBLIC KEYS (RSA) **********//////////
-
-    //TODO: replace eventListener by a function
-    // Add uploadKeys event
-    // function uploadKeys () {
-    uploadKeys.addEventListener('click', function () {
-
-
+    function uploadKeys () {
 
         //*** GENERATE PRIVATE KEY***//
 
@@ -218,7 +212,7 @@
         // Call function to write userID + keys to database
         let user = defaultAuthentication.currentUser;
         writeKeyData(user.uid, user.email, privKeyEncrypted, pubKeyString);
-    });
+    };
 
 
 
@@ -240,8 +234,8 @@
 
 
 
-    // Because of security reasons, the user password is not stored in FIREBASE.
-    // Instead it is always hashed, and generated when the user signs in or logs in
+    // Because of security reasons, the Symmetric User key is not stored in FIREBASE.
+    // Instead it is always generated from the hashed password when the user signs in or logs in
     // Because the seed is the password, then the Symmetric User key is always the same
     function generateSymmetricUserKey(password) {
         Math.seedrandom(sha256.hex(password));
@@ -379,13 +373,6 @@
 
                 //*** END OF ENCRYPTION OF FILE, SYMMETRIC KEY AND FILE HASHING ***//
 
-                
-
-
-
-
-
-
 
                 //*** CALL FUNCTION TO STORE RESULTS IN THE DATABASE & STORAGE***//
                 upload(userIdRecipient, user.email, file.name, fileEncrypted, symmKeyEncrypted, hashFileSigned);
@@ -410,6 +397,7 @@
         storageRef.putString(fileEnc)
             .then(function(snapshot) {
                 console.log('complete');
+                alert("Upload complete");
                 writeFileData(userIdRecipient, emailSender, fileName, symmKeyEnc, fileHash);
             });
     }
@@ -443,9 +431,11 @@
 
     //*** DOWNLOAD DATA TO CONSOLE ***//
 
-    // Listen for file download selection and show result in the console (all files) as "fileID - fileName - userID"
+    // Listen for file download
     listDownloads.addEventListener('click', function(e) {
 
+        // user is now the recipient! The decrypt the recipient needs his own private key
+        // Retrieve Private Key from recipient from Firebase Database
         let user = defaultAuthentication.currentUser;
         loadPrivateKeyUser(user.uid, function() {
             continueDecrypting(user.uid)
@@ -453,9 +443,12 @@
 
     });
 
+
+
     function loadPrivateKeyUser(userId, callback) {
 
-        // Make sure the private key of logged in user is known
+
+        // Retrieve the encrypted private key from the recipient from Firebase Database
         defaultDatabase.ref('/private_keys/' + userId).once('value').then(function(snapshot) {
 
             let encryptedPrivateKey = snapshot.val().privateKey;
@@ -464,8 +457,12 @@
             let symmetricUserKey = generateSymmetricUserKey(passwordInput.value);
             console.log("Symmetric key for this user is: " + symmetricUserKey);
 
+
+            //Private Key decryption using the self-generated symmetric key
             var privateKeyString = cryptico.decryptAESCBC(encryptedPrivateKey, symmetricUserKey);
 
+
+            //Convert the private Key String back to an object
             let privateKeyData = JSON.parse(privateKeyString);
 
             var rsa = new RSAKey();
@@ -485,8 +482,10 @@
         });
     }
 
-    function continueDecrypting(userId) {
-        defaultDatabase.ref('files/' + userId).once('value', function(snapshot) {
+
+
+    function continueDecrypting(recipientId) {
+        defaultDatabase.ref('files/' + recipientId).once('value', function(snapshot) {
 
             snapshot.forEach(function(childSnapshot) {
 
@@ -496,7 +495,7 @@
 
                 loadPublicKey(file.sender, function(publicKeySender, userIdPublicKey) {
 
-                    var storageRef = defaultStorage.ref('transfer_files/' + userId + '/' + file.fileName);
+                    var storageRef = defaultStorage.ref('transfer_files/' + recipientId + '/' + file.fileName);
 
                     storageRef.getDownloadURL().then(function(url){
 
