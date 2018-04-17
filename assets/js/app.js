@@ -67,9 +67,14 @@
     	promise.catch(e =>
             console.log(e.message));
 
+    	//TODO: add uploadKeys function
+    	// uploadKeys();
+
         btnLogout.style.visibility = "visible";
         btnSignUp.style.visibility = "hidden";
         btnLogin.style.visibility = "hidden";
+
+        console.log("User signed up");
     });
 
     // Add login event
@@ -88,6 +93,8 @@
         btnLogout.style.visibility = "visible";
         btnSignUp.style.visibility = "hidden";
         btnLogin.style.visibility = "hidden";
+
+        console.log("User signed in");
     });
 
     // Add signout event
@@ -100,8 +107,10 @@
 
         emailInput.value = "";
         passwordInput.value = "";
+        console.log("User signed out");
     });
 
+    //TODO: log out button via FIREBASE?
     // Add a realtime authentication listener
     defaultAuthentication.onAuthStateChanged(firebaseUser => {
     	if(firebaseUser) {
@@ -126,16 +135,22 @@
 
     ////////// **********  PRIVATE & PUBLIC KEYS **********//////////
 
-    //TODO: If user already exists, do not generate/ add keys
+    //TODO: replace eventListener by a function
     // Add uploadKeys event
+    // function uploadKeys () {
     uploadKeys.addEventListener('click', function () {
 
-        //*** GENERATE PRIVATE AND PUBLIC KEYS ***//
+
+
+        //*** GENERATE PRIVATE KEY***//
 
         // Generate private key (returns an RSA object)
         privKeyObj = generateRSAKey();
+        console.log("This is the private key Object: " + privKeyObj);
 
-        // Convert private key object to string
+
+        //TODO: Am I converting to a string?
+        // Convert private key object (privKeyObj) components to string to store it in FIREBASE
         let N = cryptico.b16to64(privKeyObj.n.toString(16));
         let E = cryptico.b16to64(privKeyObj.e.toString(16));
         let D = cryptico.b16to64(privKeyObj.d.toString(16));
@@ -145,6 +160,7 @@
         let DP = cryptico.b16to64(privKeyObj.dmp1.toString(16));
         let DQ = cryptico.b16to64(privKeyObj.dmq1.toString(16));
         let C = cryptico.b16to64(privKeyObj.coeff.toString(16));
+
         let privKeyData = {
             N: N,
             E: E,
@@ -156,24 +172,52 @@
             C: C
         };
 
-        privKeyString = JSON.stringify(privKeyData);
+        // This is the privKeyObj split into its different components
+        console.log("Private key Data components (before JSON) is: " + privKeyData);
+
+        // Convert the string components to a JSON format so it can be stored in FIREBASE
+        let privKeyString = JSON.stringify(privKeyData);
         console.log("Private key (JSON) is: " + privKeyString);
 
+        // Use the password of the user to generate the symmetric key (same password => same key, stored NOWHERE)
+        // It returns a string, so no need to stringify
         let symmetricUserKey = generateSymmetricUserKey(passwordInput.value);
         console.log("Symmetric key for this user is: " + symmetricUserKey);
-        var encryptedPrivateKey = cryptico.encryptAESCBC(privKeyString, symmetricUserKey);
-        console.log("Encrypted Private key (JSON) is: " + encryptedPrivateKey);
 
-        // Generate public key from private key (returns a string)
+        // Use the symmetric key to encrypt the private key of the user (because it will be stored in FIREBASE)
+        //TODO: Make sure you know how the AESCBC works!
+        let privKeyEncrypted = cryptico.encryptAESCBC(privKeyString, symmetricUserKey);
+        console.log("PRIVATE KEY ENCRYPTED is: " + privKeyEncrypted);
+
+
+
+
+
+
+
+
+
+
+        //*** GENERATE PUBLIC KEY***//
+
+        // Generate public key from private key object (returns a string)
         pubKeyString = cryptico.publicKeyString(privKeyObj);
-        console.log("Public key is: " + pubKeyString);
+        console.log("Public key (string) is: " + pubKeyString);
+
+
+
+
+
+
+
+
 
 
         //*** STORE KEYS IN THE DATABASE (JSON) LINKED TO THE LOGGED USER *** //
 
         // Call function to write userID + keys to database
         let user = defaultAuthentication.currentUser;
-        writeKeyData(user.uid, user.email, encryptedPrivateKey, pubKeyString);
+        writeKeyData(user.uid, user.email, privKeyEncrypted, pubKeyString);
     });
 
     function generateRSAKey() {
