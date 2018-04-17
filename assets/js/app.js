@@ -133,7 +133,7 @@
 
 
 
-    ////////// **********  PRIVATE & PUBLIC KEYS **********//////////
+    ////////// **********  PRIVATE & PUBLIC KEYS (RSA) **********//////////
 
     //TODO: replace eventListener by a function
     // Add uploadKeys event
@@ -220,12 +220,29 @@
         writeKeyData(user.uid, user.email, privKeyEncrypted, pubKeyString);
     });
 
+
+
+
+
+
+
+
+
+    // RSAKey() creates an empty RSA object (empty components: N, E, D, etc)
+    // via the "generate" method a new random private key B (1024) bits long , using public expt E
+    // Converts the string 03 to an integer and does magic!
     function generateRSAKey() {
         var rsa = new RSAKey();
         rsa.generate(1024, "03");
         return rsa;
     }
 
+
+
+
+    // Because of security reasons, the user password is not stored in FIREBASE.
+    // Instead it is always hashed, and generated when the user signs in or logs in
+    // Because the seed is the password, then the Symmetric User key is always the same
     function generateSymmetricUserKey(password) {
         Math.seedrandom(sha256.hex(password));
         var key = new Array(32);
@@ -234,16 +251,20 @@
         return key;
     }
 
+
+
+
     // Create a json entry as a child of branch "keys" with unique identifier "push()"
-    // and stores it in the Firebase Database
+    // and stores it in the FIREBASE Database
     function writeKeyData(userId, email, privateK, publicK) {
-        let postData = {
+
+        let postPublicData = {
             email: email,
             userId: userId,
             publicKey: publicK
         };
-        defaultDatabase.ref('public_keys/' + userId).set(postData);
-        console.log("Saved" + postData); //TODO: postdata shows nothing in log?
+        defaultDatabase.ref('public_keys/' + userId).set(postPublicData);
+        console.log("Saved public key data: " + postPublicData);
 
 
         let postPrivateData = {
@@ -251,7 +272,7 @@
             privateKey: privateK
         };
         defaultDatabase.ref('private_keys/' + userId).set(postPrivateData);
-        console.log("Saved" + postPrivateData); //TODO: postdata shows nothing in log?
+        console.log("Saved private key data: " + postPrivateData);
     }
 
     ////////// **********  PRIVATE & PUBLIC KEYS **********//////////
@@ -262,14 +283,14 @@
 
 
 
-    ////////// **********  SYMMETRIC KEY & ENCRYPTION **********//////////
+    ////////// **********  SYMMETRIC KEY (AES) & ENCRYPTION **********//////////
 
     // Listen for file selection
     selectFileButton.addEventListener('change', function(e) {
 
         //*** GENERATE SYMMETRIC KEY***//
 
-        // Generate random symmetric key
+        // Generate random symmetric key object
         symmKeyObj = cryptico.generateAESKey();
         console.log("Symmetric key is: " + symmKeyObj);
 
