@@ -28,8 +28,8 @@
           <file leaf-file-name="app.js" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/assets/js/app.js">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="1071">
-                  <caret line="285" column="47" lean-forward="false" selection-start-line="285" selection-start-column="47" selection-end-line="285" selection-end-column="47" />
+                <state relative-caret-position="-637">
+                  <caret line="381" column="16" lean-forward="true" selection-start-line="381" selection-start-column="16" selection-end-line="381" selection-end-column="16" />
                   <folding />
                 </state>
               </provider>
@@ -73,7 +73,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>MixColumns</find>
       <find>sha256</find>
       <find>encrypt</find>
       <find>defaultAuthentication.currentUser</find>
@@ -103,6 +102,7 @@
       <find>publicKeyRe</find>
       <find>uploadKeys</find>
       <find>generateAESKey</find>
+      <find>loadPublicKey</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -332,7 +332,7 @@
       <workItem from="1523385011552" duration="1922000" />
       <workItem from="1523777828287" duration="9464000" />
       <workItem from="1523860883941" duration="151000" />
-      <workItem from="1523903015811" duration="11447000" />
+      <workItem from="1523903015811" duration="13144000" />
     </task>
     <task id="LOCAL-00001" summary="add receipient public key logic">
       <created>1523428562371</created>
@@ -352,7 +352,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="88032000" />
+    <option name="totallyTimeSpent" value="89729000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -782,8 +782,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/assets/js/app.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1071">
-          <caret line="285" column="47" lean-forward="false" selection-start-line="285" selection-start-column="47" selection-end-line="285" selection-end-column="47" />
+        <state relative-caret-position="-637">
+          <caret line="381" column="16" lean-forward="true" selection-start-line="381" selection-start-column="16" selection-end-line="381" selection-end-column="16" />
           <folding />
         </state>
       </provider>

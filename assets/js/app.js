@@ -288,23 +288,40 @@
     // Listen for file selection
     selectFileButton.addEventListener('change', function(e) {
 
+
+
+
         //*** GENERATE SYMMETRIC KEY***//
 
         // Generate random symmetric key object
         symmKeyObj = cryptico.generateAESKey();
-        console.log("Symmetric key is: " + symmKeyObj);
+        console.log("Symmetric key object is: " + symmKeyObj);
 
-        // Convert symmetric key object to a string
+        // Convert symmetric key object to a string so it can be stored in FIREBASE
         symmKeyString = cryptico.bytes2string(symmKeyObj);
         console.log("Symmetric key (stringified) is: " + symmKeyString);
 
+
+
+
+
+        //*** START ENCRYPTION ***//
+
+
+        //TODO: Review code, can we make it more readable?
+        // Get public key of recipient from FIREBASE Database using the destination email
+        // Use the public key to encrypt the file
         loadPublicKey(recipientEmail.value, function(publicKey, userIdPublicKey) {
             continueEncrypting(e.target.files[0], publicKey, userIdPublicKey);
         });
-        // End Retrieve the public key of the recipient
     });
 
+
+
+
+    // Get the Public Key of the recipient from FIREBASE Database
     function loadPublicKey(emailUser, callback) {
+
         // Retrieve the public key of the recipient
         defaultDatabase.ref('public_keys').once('value', function(snapshot) {
 
@@ -325,8 +342,9 @@
         });
     }
 
+
+    //*** GET/ READ FILE***//
     function continueEncrypting(file, publicKeyRecipient, userIdRecipient) {
-        //*** GET/ READ FILE***//
 
         // The HTML5 FileReader object allows to read the contents of the selected file
         var reader = new FileReader();
@@ -336,28 +354,41 @@
 
 
 
-            //*** ENCRYPTION AND HASHING ***//
+            //*** ENCRYPTION OF FILE, SYMMETRIC KEY AND FILE HASHING ***//
 
-            // Encrypt file content with symmetric key => File'
+            // FILE CONTENTS ENCRYPTION
             var plaintext = e.target.result;
             var fileEncrypted = cryptico.encryptAESCBC(plaintext, symmKeyObj);
             console.log("File encrypted: " + fileEncrypted);
 
-            // Encrypt the symmetric key => Symm'
+            // SYMM KEY ENCRYPTION
             var symmKeyEncrypted = cryptico.b16to64(publicKeyRecipient.encrypt(symmKeyString));
             console.log("SymKey encrypted: " + symmKeyEncrypted);
 
-            // Hash the original file => FileHash
-            var fileHashed = SHA256(plaintext);
-            console.log("File hashed: " + fileHashed);
 
+            //FILE HASHING
+            // Hash file
+            var hashFile = SHA256(plaintext);
+            console.log("Hash file: " + hashFile);
+
+            // SIGN hash file (with private key of sender)
             let user = defaultAuthentication.currentUser;
             loadPrivateKeyUser(user.uid, function() {
-                let fileHashedSigned = privKeyObj.signStringWithSHA256(fileHashed);
-                console.log("Filehash signed: " + fileHashedSigned);
+                let hashFileSigned = privKeyObj.signStringWithSHA256(hashFile);
+                console.log("Hash file signed: " + hashFileSigned);
+
+                //*** END OF ENCRYPTION OF FILE, SYMMETRIC KEY AND FILE HASHING ***//
+
+                
+
+
+
+
+
+
 
                 //*** CALL FUNCTION TO STORE RESULTS IN THE DATABASE & STORAGE***//
-                upload(userIdRecipient, user.email, file.name, fileEncrypted, symmKeyEncrypted, fileHashedSigned);
+                upload(userIdRecipient, user.email, file.name, fileEncrypted, symmKeyEncrypted, hashFileSigned);
             })
 
         };
@@ -382,10 +413,6 @@
                 writeFileData(userIdRecipient, emailSender, fileName, symmKeyEnc, fileHash);
             });
     }
-
-
-
-
 
     // Create a json entry as a child of branch "files" with unique identifier "push()"
     // and stores it in the Firebase Database
@@ -483,7 +510,7 @@
 
                             console.log(text);
 
-                            fileDecrypted = decryptFile(text, file.symmetricKey);
+                            var fileDecrypted = decryptFile(text, file.symmetricKey);
 
                             // verify the Hash
                             var fileHashed = SHA256(fileDecrypted);
