@@ -35,6 +35,7 @@
     let listDownloads = document.getElementById('listDownloads');
 
     // Declare global variables
+    // TODO get rid of global vars
     var pubKeyString = null;
     var privKeyObj = null;
     var symmKeyObj = null;
@@ -51,6 +52,8 @@
 
     ////////// **********  AUTHENTICATION **********//////////
 
+    btnLogout.style.visibility = "hidden";
+
     // Add signup event
     btnSignUp.addEventListener('click', e => {
 
@@ -63,6 +66,10 @@
                         createUserWithEmailAndPassword(email,pass);
     	promise.catch(e =>
             console.log(e.message));
+
+        btnLogout.style.visibility = "visible";
+        btnSignUp.style.visibility = "hidden";
+        btnLogin.style.visibility = "hidden";
     });
 
     // Add login event
@@ -77,11 +84,19 @@
                         signInWithEmailAndPassword(email,pass);
         promise.catch(e =>
             console.log(e.message));
+
+        btnLogout.style.visibility = "visible";
+        btnSignUp.style.visibility = "hidden";
+        btnLogin.style.visibility = "hidden";
     });
 
     // Add signout event
     btnLogout.addEventListener('click', e => {
         defaultAuthentication.signOut();
+
+        btnLogout.style.visibility = "hidden";
+        btnSignUp.style.visibility = "visible";
+        btnLogin.style.visibility = "visible";
     });
 
     // Add a realtime authentication listener
