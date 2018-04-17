@@ -97,6 +97,9 @@
         btnLogout.style.visibility = "hidden";
         btnSignUp.style.visibility = "visible";
         btnLogin.style.visibility = "visible";
+
+        emailInput.value = "";
+        passwordInput.value = "";
     });
 
     // Add a realtime authentication listener
