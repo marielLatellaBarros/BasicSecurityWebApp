@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="assets/css/spaceLabTheme-bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/luxTheme-bootstrap.min.css">
     <title>File Transfer App</title>
   </head>
 
@@ -21,6 +21,7 @@
 
           <div class="jumbotron">
               <form>
+
                   <fieldset>
                       <legend>Sign In</legend>
 
@@ -28,42 +29,52 @@
                       <label for="emailInput" class="col-2">Email address</label>
                       <input type="email" class="form-control col-4" id="emailInput" placeholder="my.email@example.com">
                   </div>
-                  <div class="form-group form-inline">
-                      <label for="passwordInput" class="col-2">Password</label>
-                      <input type="password" class="form-control col-4" id="passwordInput" placeholder="Password">
-                  </div>
-                  <div class="row">
-                      <div class="container offset-2">
-                          <button type="button" class="btn btn-primary" id="btnLogin">Log In</button>
-                          <button type="button" class="btn btn-success" id="btnSignUp">Sign Up</button>
-                          <button type="button" class="btn btn-secondary" id="btnLogout">Log Out</button>
+                      <div class="form-group form-inline">
+                          <label for="passwordInput" class="col-2">Password</label>
+                          <input type="password" class="form-control col-4" id="passwordInput" placeholder="Password">
                       </div>
-                  </div>
+
+                      <div class="row">
+                          <div class="container offset-2">
+                              <button type="button" class="btn btn-primary" id="btnLogin">Log In</button>
+                              <button type="button" class="btn btn-success" id="btnSignUp">Sign Up</button>
+                              <button type="button" class="btn btn-secondary" id="btnLogout">Log Out</button>
+                          </div>
+                      </div>
                   </fieldset>
-        </form>
-      </div>
+              </form>
+          </div>
 
         <div class="jumbotron">
-        <form>
-          <fieldset>
-            <legend>Transfer file</legend>
+            <form>
 
-              <div class="form-group">
-                <label for="recipientEmail">Email address</label>
-                <input type="email" class="form-control" id="recipientEmail" placeholder="recipient@example.com">
-              </div>
+                <fieldset>
+                    <legend>Encrypt and Send File</legend>
 
-              <div class="form-group">
-                  <input type="file" class="form-control-file" id="selectFileButton" aria-describedby="fileHelp" value="upload"/>
-              </div>
+                    <div class="form-group">
+                        <label for="recipientEmail">Email address</label>
+                        <input type="email" class="form-control col-4" id="recipientEmail" placeholder="recipient@example.com">
+                    </div>
 
-              <div class="form-group">
-                  <input type="button" value="list downloads" id="listDownloads" />
-              </div>
+                    <div class="form-group">
+                        <input type="file" class="form-control-file" id="selectFileButton"  value="upload">
+                    </div>
+                </fieldset>
+            </form>
+        </div>
 
-          </fieldset>
-        </form>
-      </div>
+          <div class="jumbotron">
+              <form>
+
+                  <fieldset>
+                      <legend>Download and Decrypt file(s)</legend>
+
+                      <div class="form-group">
+                          <input type="button" value="Download files" id="listDownloads" >
+                      </div>
+                  </fieldset>
+              </form>
+          </div>
 
     </section>
 
