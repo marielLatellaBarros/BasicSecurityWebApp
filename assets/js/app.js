@@ -110,7 +110,7 @@
         });
     });
 
-    //TODO: log out button via FIREBASE?
+    //TODO: log out button via FIREBASE? Check 'hide'doesn't work?
     // Add a realtime authentication listener
     defaultAuthentication.onAuthStateChanged(firebaseUser => {
     	if(firebaseUser) {
@@ -140,10 +140,22 @@
 
         // Generate private key (returns an RSA object)
         privKeyObj = generateRSAKey();
-        console.log("This is the private key Object: " + privKeyObj);
+        console.log("This is the PRIVATE KEY Object: " + privKeyObj);
 
 
-        //TODO: Am I converting to a string?
+        //*** GENERATE PUBLIC KEY***//
+
+        // Generate public key from private key object (returns a string)
+        pubKeyString = cryptico.publicKeyString(privKeyObj);
+        console.log("This is the PUBLIC KEY String: " + pubKeyString);
+
+
+
+
+
+
+        //*** STORE KEYS IN THE DATABASE (JSON) LINKED TO THE LOGGED USER *** //
+
         // Convert private key object (privKeyObj) components to string to store it in FIREBASE
         let N = cryptico.b16to64(privKeyObj.n.toString(16));
         let E = cryptico.b16to64(privKeyObj.e.toString(16));
@@ -167,52 +179,28 @@
         };
 
         // This is the privKeyObj split into its different components
-        console.log("Private key Data components (before JSON) is: " + privKeyData);
+        console.log("FIREBASE: Private key Data components (object, before JSON) is: " + privKeyData);
 
         // Convert the string components to a JSON format so it can be stored in FIREBASE
         let privKeyString = JSON.stringify(privKeyData);
-        console.log("Private key (JSON) is: " + privKeyString);
+        console.log("FIREBASE: Private key (JSON) is: " + privKeyString);
 
         // Use the password of the user to generate the symmetric key (same password => same key, stored NOWHERE)
         // It returns a string, so no need to stringify
         let symmetricUserKey = generateSymmetricUserKey(passwordInput.value);
-        console.log("Symmetric key for this user is: " + symmetricUserKey);
+        console.log("FIREBASE: Symmetric key (static) for this user (user-password), to encrypt private key is: " + symmetricUserKey);
 
         // Use the symmetric key to encrypt the private key of the user (because it will be stored in FIREBASE)
         //TODO: Make sure you know how the AESCBC works!
         let privKeyEncrypted = cryptico.encryptAESCBC(privKeyString, symmetricUserKey);
-        console.log("PRIVATE KEY ENCRYPTED is: " + privKeyEncrypted);
+        console.log("FIREBASE: PRIVATE KEY ENCRYPTED (with symmetric key static) is: " + privKeyEncrypted);
 
-
-
-
-
-
-
-
-
-
-        //*** GENERATE PUBLIC KEY***//
-
-        // Generate public key from private key object (returns a string)
-        pubKeyString = cryptico.publicKeyString(privKeyObj);
-        console.log("Public key (string) is: " + pubKeyString);
-
-
-
-
-
-
-
-
-
-
-        //*** STORE KEYS IN THE DATABASE (JSON) LINKED TO THE LOGGED USER *** //
 
         // Call function to write userID + keys to database
         let user = defaultAuthentication.currentUser;
         writeKeyData(user.uid, user.email, privKeyEncrypted, pubKeyString);
-    };
+    }
+
 
 
 
@@ -232,8 +220,6 @@
     }
 
 
-
-
     // Because of security reasons, the Symmetric User key is not stored in FIREBASE.
     // Instead it is always generated from the hashed password when the user signs in or logs in
     // Because the seed is the password, then the Symmetric User key is always the same
@@ -244,8 +230,6 @@
         r.nextBytes(key);
         return key;
     }
-
-
 
 
     // Create a json entry as a child of branch "keys" with unique identifier "push()"
@@ -276,8 +260,7 @@
 
 
 
-
-    ////////// **********  SYMMETRIC KEY (AES) & ENCRYPTION **********//////////
+    ////////// **********  FILE  ENCRYPTION **********//////////
 
     // Listen for file selection
     selectFileButton.addEventListener('change', function(e) {
@@ -289,7 +272,7 @@
 
         // Generate random symmetric key object
         symmKeyObj = cryptico.generateAESKey();
-        console.log("Symmetric key object is: " + symmKeyObj);
+        console.log("Symmetric key (random) object to encrypt file is : " + symmKeyObj);
 
         // Convert symmetric key object to a string so it can be stored in FIREBASE
         symmKeyString = cryptico.bytes2string(symmKeyObj);
@@ -302,7 +285,7 @@
         //*** START ENCRYPTION ***//
 
 
-        //TODO: Review code, can we make it more readable?
+        //TODO: Review code, more readable? Use firebase .then?
         // Get public key of recipient from FIREBASE Database using the destination email
         // Use the public key to encrypt the file
         loadPublicKey(recipientEmail.value, function(publicKey, userIdPublicKey) {
@@ -323,7 +306,7 @@
 
                 var value = childSnapshot.val();
                 var keyId = childSnapshot.key;
-                console.log(keyId + ' - ' + value.email + ' - '+ value.publicKey);
+                console.log("Public key of recipient:  " + keyId + ' - ' + value.email + ' - '+ value.publicKey);
 
                 if(value.email === emailUser) {
                     let publicKey = value.publicKey;
@@ -353,11 +336,11 @@
             // FILE CONTENTS ENCRYPTION
             var plaintext = e.target.result;
             var fileEncrypted = cryptico.encryptAESCBC(plaintext, symmKeyObj);
-            console.log("File encrypted: " + fileEncrypted);
+            console.log("File encrypted with symmetric key (random) object: " + fileEncrypted);
 
             // SYMM KEY ENCRYPTION
             var symmKeyEncrypted = cryptico.b16to64(publicKeyRecipient.encrypt(symmKeyString));
-            console.log("SymKey encrypted: " + symmKeyEncrypted);
+            console.log("Symmetric key (random) encrypted with public key recipient: " + symmKeyEncrypted);
 
 
             //FILE HASHING
@@ -515,10 +498,12 @@
                             var fileHashed = SHA256(fileDecrypted);
 
                             if(publicKeySender.verifyString(fileHashed, file.fileHash)) {
-
+                                alert("File hash OK!");
+                                console.log("File hash OK!");
                                 downloadFile(file.fileName, fileDecrypted);
                             } else {
                                 // TODO: pretty error message
+                                alert("File hash mismatch!");
                                 console.log("File hash mismatch!!!!");
                             }
                         };
