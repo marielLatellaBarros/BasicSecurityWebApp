@@ -306,11 +306,11 @@
 
                 var value = childSnapshot.val();
                 var keyId = childSnapshot.key;
-                console.log("Public key of recipient:  " + keyId + ' - ' + value.email + ' - '+ value.publicKey);
 
                 if(value.email === emailUser) {
                     let publicKey = value.publicKey;
                     let userId = value.userId;
+                    console.log("Public key of recipient:  " + keyId + ' - ' + value.email + ' - '+ value.publicKey);
 
                     var publicKeyObj = cryptico.publicKeyFromString(publicKey);
                     callback(publicKeyObj, userId);
@@ -336,23 +336,23 @@
             // FILE CONTENTS ENCRYPTION
             var plaintext = e.target.result;
             var fileEncrypted = cryptico.encryptAESCBC(plaintext, symmKeyObj);
-            console.log("File encrypted with symmetric key (random) object: " + fileEncrypted);
+            console.log("FILE ENCRYPTED with symmetric key (random) object: " + fileEncrypted);
 
             // SYMM KEY ENCRYPTION
             var symmKeyEncrypted = cryptico.b16to64(publicKeyRecipient.encrypt(symmKeyString));
-            console.log("Symmetric key (random) encrypted with public key recipient: " + symmKeyEncrypted);
+            console.log("SYMMETRIC KEY (random) ENCRYPTED with public key recipient: " + symmKeyEncrypted);
 
 
             //FILE HASHING
             // Hash file
             var hashFile = SHA256(plaintext);
-            console.log("Hash file: " + hashFile);
+            console.log("HASH FILE: " + hashFile);
 
             // SIGN hash file (with private key of sender)
             let user = defaultAuthentication.currentUser;
             loadPrivateKeyUser(user.uid, function() {
                 let hashFileSigned = privKeyObj.signStringWithSHA256(hashFile);
-                console.log("Hash file signed: " + hashFileSigned);
+                console.log("HASH FILE SIGNED: " + hashFileSigned);
 
                 //*** END OF ENCRYPTION OF FILE, SYMMETRIC KEY AND FILE HASHING ***//
 
