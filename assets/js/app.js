@@ -31,19 +31,8 @@
 
     // Get DOM-elements for storage and database
     let selectFileButton = document.getElementById('selectFileButton');
+    let uploadFileButton = document.getElementById('upload');
     let listDownloads = document.getElementById('listDownloads');
-
-    // Declare global variables
-    // TODO get rid of global vars
-    var pubKeyString = null;
-    var privKeyObj = null;
-    var symmKeyObj = null;
-    var symmKeyString = null;
-
-
-
-
-
 
 
 
@@ -139,7 +128,7 @@
         //*** GENERATE PRIVATE KEY***//
 
         // Generate private key (returns an RSA object)
-        privKeyObj = generateRSAKey();
+        var privKeyObj = generateRSAKey();
         console.log("This is the PRIVATE KEY Object: " + privKeyObj);
 
 
@@ -267,25 +256,10 @@
 
 
 
-
-        //*** GENERATE SYMMETRIC KEY***//
-
-        // Generate random symmetric key object
-        symmKeyObj = cryptico.generateAESKey();
-        console.log("Symmetric key (random) object to encrypt file is : " + symmKeyObj);
-
-        // Convert symmetric key object to a string so it can be stored in FIREBASE
-        symmKeyString = cryptico.bytes2string(symmKeyObj);
-        console.log("Symmetric key (stringified) is: " + symmKeyString);
-
-
-
-
-
         //*** START ENCRYPTION ***//
 
 
-        //TODO: Review code, more readable? Use firebase .then?
+        
         // Get public key of recipient from FIREBASE Database using the destination email
         // Use the public key to encrypt the file
         loadPublicKey(recipientEmail.value, function(publicKey, userIdPublicKey) {
@@ -330,6 +304,16 @@
         reader.onload = function (e) {
 
 
+            //*** GENERATE SYMMETRIC KEY***//
+
+            // Generate random symmetric key object
+            var symmKeyObj = cryptico.generateAESKey();
+            console.log("Symmetric key (random) object to encrypt file is : " + symmKeyObj);
+
+            // Convert symmetric key object to a string so it can be stored in FIREBASE
+            var symmKeyString = cryptico.bytes2string(symmKeyObj);
+            console.log("Symmetric key (stringified) is: " + symmKeyString);
+
 
             //*** ENCRYPTION OF FILE, SYMMETRIC KEY AND FILE HASHING ***//
 
@@ -350,7 +334,7 @@
 
             // SIGN hash file (with private key of sender)
             let user = defaultAuthentication.currentUser;
-            loadPrivateKeyUser(user.uid, function() {
+            loadPrivateKeyUser(user.uid, function(privKeyObj) {
                 let hashFileSigned = privKeyObj.signStringWithSHA256(hashFile);
                 console.log("HASH FILE SIGNED: " + hashFileSigned);
 
@@ -420,8 +404,8 @@
         // user is now the recipient! The decrypt the recipient needs his own private key
         // Retrieve Private Key from recipient from Firebase Database
         let user = defaultAuthentication.currentUser;
-        loadPrivateKeyUser(user.uid, function() {
-            continueDecrypting(user.uid)
+        loadPrivateKeyUser(user.uid, function(privKeyObj) {
+            continueDecrypting(user.uid, privKeyObj)
         });
 
     });
@@ -458,16 +442,15 @@
                 cryptico.b64to16(privateKeyData.DQ),
                 cryptico.b64to16(privateKeyData.C));
 
-            privKeyObj = rsa;
-            if(privKeyObj) {
-                callback();
+            if(rsa) {
+                callback(rsa);
             }
         });
     }
 
 
 
-    function continueDecrypting(recipientId) {
+    function continueDecrypting(recipientId, privKeyObj) {
         defaultDatabase.ref('files/' + recipientId).once('value', function(snapshot) {
 
             snapshot.forEach(function(childSnapshot) {
@@ -492,7 +475,7 @@
 
                             console.log(text);
 
-                            var fileDecrypted = decryptFile(text, file.symmetricKey);
+                            var fileDecrypted = decryptFile(text, file.symmetricKey, privKeyObj);
 
                             // verify the Hash
                             var fileHashed = SHA256(fileDecrypted);
@@ -516,7 +499,7 @@
         });
     }
 
-    function decryptFile(text, encryptedSymmetricKey) {
+    function decryptFile(text, encryptedSymmetricKey, privKeyObj) {
         var symmetricKeyString = privKeyObj.decrypt(cryptico.b64to16(encryptedSymmetricKey));
         var symmetricKey = cryptico.string2bytes(symmetricKeyString);
 
