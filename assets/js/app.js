@@ -40,8 +40,8 @@
     btnSignUp.addEventListener('click', e => {
 
         // Get email and password
-        const email = emailInput.value; //TODO: Check email validation
-        const pass = passwordInput.value; //TODO: Check password validation
+        const email = emailInput.value;
+        const pass = passwordInput.value;
 
         // Create user with email and password
         defaultAuthentication.createUserWithEmailAndPassword(email, pass)
@@ -63,8 +63,8 @@
     btnLogin.addEventListener('click', e => {
 
         // Get email and password
-        const email = emailInput.value; //TODO: Check email validation
-        const pass = passwordInput.value; //TODO: Check password validation
+        const email = emailInput.value;
+        const pass = passwordInput.value;
 
         // Sign in
         const promise = defaultAuthentication.signInWithEmailAndPassword(email, pass);
@@ -162,7 +162,6 @@
         console.log("FIREBASE: Symmetric key (static) for this user (user-password), to encrypt private key is: " + symmetricUserKey);
 
         // Use the symmetric key to encrypt the private key of the user (because it will be stored in FIREBASE)
-        //TODO: Make sure you know how the AESCBC works!
         let privKeyEncrypted = cryptico.encryptAESCBC(privKeyString, symmetricUserKey);
         console.log("FIREBASE: PRIVATE KEY ENCRYPTED (with symmetric key static) is: " + privKeyEncrypted);
 
@@ -335,6 +334,7 @@
             .then(function (snapshot) {
                 console.log('complete');
                 alert("Upload complete");
+
                 writeFileData(userIdRecipient, emailSender, fileName, symmKeyEnc, fileHash);
             });
     }
@@ -364,13 +364,12 @@
     // Listen for file download
     listDownloads.addEventListener('click', function (e) {
 
-        // user is now the recipient! The decrypt the recipient needs his own private key
+        // user is now the recipient! To decrypt the recipient needs his own private key
         // Retrieve Private Key from recipient from Firebase Database
         let user = defaultAuthentication.currentUser;
         loadPrivateKeyUser(user.uid, function (privKeyObj) {
             continueDecrypting(user.uid, privKeyObj)
         });
-
     });
 
 
@@ -442,12 +441,11 @@
                             var fileHashed = SHA256(fileDecrypted);
 
                             if (publicKeySender.verifyString(fileHashed, file.fileHash)) {
-                                alert("File hash OK!");
+                                alert("Your download is ready!");
                                 console.log("File hash OK!");
                                 downloadFile(file.fileName, fileDecrypted);
                             } else {
-                                // TODO: pretty error message
-                                alert("File hash mismatch!");
+                                alert("The file is corrupted!");
                                 console.log("File hash mismatch!!!!");
                             }
                         };
