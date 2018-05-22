@@ -2,7 +2,7 @@
   "rules": {
     "files" : {
       "$uid": {
-        ".write": "$uid === auth.uid",
+        ".write": true,
         ".read": "$uid === auth.uid"
       }
     },
