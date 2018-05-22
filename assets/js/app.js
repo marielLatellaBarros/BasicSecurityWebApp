@@ -1,4 +1,4 @@
-(function() {
+(function () {
 
     ////////// ********** INITIALIZE FIREBASE **********//////////
     var config = {
@@ -18,24 +18,18 @@
     ////////// ********** INITIALIZE FIREBASE **********//////////
 
 
-
-
-
     // Get all DOM-elements from html
     const emailInput = document.getElementById('emailInput');
-    const recipientEmail = document.getElementById('recipientEmail');
     const passwordInput = document.getElementById('passwordInput');
     const btnLogin = document.getElementById('btnLogin');
     const btnSignUp = document.getElementById('btnSignUp');
     const btnLogout = document.getElementById('btnLogout');
 
     // Get DOM-elements for storage and database
+    const recipientEmail = document.getElementById('recipientEmail');
     let selectFileButton = document.getElementById('selectFileButton');
     let uploadFileButton = document.getElementById('upload');
     let listDownloads = document.getElementById('listDownloads');
-
-
-
 
 
     ////////// **********  AUTHENTICATION **********//////////
@@ -102,28 +96,20 @@
     //TODO: log out button via FIREBASE? Check 'hide'doesn't work?
     // Add a realtime authentication listener
     defaultAuthentication.onAuthStateChanged(firebaseUser => {
-    	if(firebaseUser) {
-    		console.log(firebaseUser);
-    		btnLogout.classList.remove('hide');
-    	} else {
-    		console.log('not logged in');
-    		btnLogout.classList.add('hide');
-    	}
+        if (firebaseUser) {
+            console.log(firebaseUser);
+            btnLogout.classList.remove('hide');
+        } else {
+            console.log('not logged in');
+            btnLogout.classList.add('hide');
+        }
     });
 
     ////////// **********  AUTHENTICATION **********//////////
 
 
-
-
-
-
-
-
-
-
     ////////// **********  PRIVATE & PUBLIC KEYS (RSA) **********//////////
-    function uploadKeys () {
+    function uploadKeys() {
 
         //*** GENERATE PRIVATE KEY***//
 
@@ -137,10 +123,6 @@
         // Generate public key from private key object (returns a string)
         pubKeyString = cryptico.publicKeyString(privKeyObj);
         console.log("This is the PUBLIC KEY String: " + pubKeyString);
-
-
-
-
 
 
         //*** STORE KEYS IN THE DATABASE (JSON) LINKED TO THE LOGGED USER *** //
@@ -191,14 +173,6 @@
     }
 
 
-
-
-
-
-
-
-
-
     // RSAKey() creates an empty RSA object (empty components: N, E, D, etc)
     // via the "generate" method a new random private key B (1024) bits long , using public expt E
     // Converts the string 03 to an integer and does magic!
@@ -245,46 +219,42 @@
     ////////// **********  PRIVATE & PUBLIC KEYS **********//////////
 
 
-
-
-
-
     ////////// **********  FILE  ENCRYPTION **********//////////
 
     // Listen for file selection
-    selectFileButton.addEventListener('change', function(e) {
+    uploadFileButton.addEventListener('click', function (e) {
+        e.preventDefault();
 
+        if (recipientEmail.value === "") {
+            window.alert("recipient field is empty!")
+        } else {
 
+            //*** START ENCRYPTION ***//
 
-        //*** START ENCRYPTION ***//
-
-
-        
-        // Get public key of recipient from FIREBASE Database using the destination email
-        // Use the public key to encrypt the file
-        loadPublicKey(recipientEmail.value, function(publicKey, userIdPublicKey) {
-            continueEncrypting(e.target.files[0], publicKey, userIdPublicKey);
-        });
+            // Get public key of recipient from FIREBASE Database using the destination email
+            // Use the public key to encrypt the file
+            loadPublicKey(recipientEmail.value, function (publicKey, userIdPublicKey) {
+                continueEncrypting(selectFileButton.files[0], publicKey, userIdPublicKey);
+            });
+        }
     });
-
-
 
 
     // Get the Public Key of the recipient from FIREBASE Database
     function loadPublicKey(emailUser, callback) {
 
         // Retrieve the public key of the recipient
-        defaultDatabase.ref('public_keys').once('value', function(snapshot) {
+        defaultDatabase.ref('public_keys').once('value', function (snapshot) {
 
-            snapshot.forEach(function(childSnapshot) {
+            snapshot.forEach(function (childSnapshot) {
 
                 var value = childSnapshot.val();
                 var keyId = childSnapshot.key;
 
-                if(value.email === emailUser) {
+                if (value.email === emailUser) {
                     let publicKey = value.publicKey;
                     let userId = value.userId;
-                    console.log("Public key of recipient:  " + keyId + ' - ' + value.email + ' - '+ value.publicKey);
+                    console.log("Public key of recipient:  " + keyId + ' - ' + value.email + ' - ' + value.publicKey);
 
                     var publicKeyObj = cryptico.publicKeyFromString(publicKey);
                     callback(publicKeyObj, userId);
@@ -334,7 +304,7 @@
 
             // SIGN hash file (with private key of sender)
             let user = defaultAuthentication.currentUser;
-            loadPrivateKeyUser(user.uid, function(privKeyObj) {
+            loadPrivateKeyUser(user.uid, function (privKeyObj) {
                 let hashFileSigned = privKeyObj.signStringWithSHA256(hashFile);
                 console.log("HASH FILE SIGNED: " + hashFileSigned);
 
@@ -358,11 +328,11 @@
 
         // Create a storage reference for files=> defaultStorage.ref('folder_name/file_name');
         // fileName is a pointer (reference) to where the actual file will be saved
-        var storageRef = defaultStorage.ref('transfer_files/' + userIdRecipient +'/' + fileName);
+        var storageRef = defaultStorage.ref('transfer_files/' + userIdRecipient + '/' + fileName);
 
         // Upload the file, and if it is successful then add the symmKeyEnc and file Hash to Database
         storageRef.putString(fileEnc)
-            .then(function(snapshot) {
+            .then(function (snapshot) {
                 console.log('complete');
                 alert("Upload complete");
                 writeFileData(userIdRecipient, emailSender, fileName, symmKeyEnc, fileHash);
@@ -373,11 +343,11 @@
     // and stores it in the Firebase Database
     function writeFileData(userIdRecipient, emailSender, fileName, symmKeyEnc, fileHash) {
         var postData = {
-                userIdRecipient: userIdRecipient,
-                fileName: fileName,
-                symmetricKey: symmKeyEnc,
-                fileHash: fileHash,
-                sender: emailSender
+            userIdRecipient: userIdRecipient,
+            fileName: fileName,
+            symmetricKey: symmKeyEnc,
+            fileHash: fileHash,
+            sender: emailSender
         };
         defaultDatabase.ref().child('files/' + userIdRecipient).push().set(postData);
         console.log("Saved" + postData); //TODO: postdata shows nothing in log?
@@ -386,37 +356,29 @@
     ////////// **********  SYMMETRIC KEY & ENCRYPTION **********//////////
 
 
-
-
-
-
-
-
-
     ////////// **********  DECRYPTION **********//////////
 
 
     //*** DOWNLOAD DATA TO CONSOLE ***//
 
     // Listen for file download
-    listDownloads.addEventListener('click', function(e) {
+    listDownloads.addEventListener('click', function (e) {
 
         // user is now the recipient! The decrypt the recipient needs his own private key
         // Retrieve Private Key from recipient from Firebase Database
         let user = defaultAuthentication.currentUser;
-        loadPrivateKeyUser(user.uid, function(privKeyObj) {
+        loadPrivateKeyUser(user.uid, function (privKeyObj) {
             continueDecrypting(user.uid, privKeyObj)
         });
 
     });
 
 
-
     function loadPrivateKeyUser(userId, callback) {
 
 
         // Retrieve the encrypted private key from the recipient from Firebase Database
-        defaultDatabase.ref('/private_keys/' + userId).once('value').then(function(snapshot) {
+        defaultDatabase.ref('/private_keys/' + userId).once('value').then(function (snapshot) {
 
             let encryptedPrivateKey = snapshot.val().privateKey;
 
@@ -442,35 +404,34 @@
                 cryptico.b64to16(privateKeyData.DQ),
                 cryptico.b64to16(privateKeyData.C));
 
-            if(rsa) {
+            if (rsa) {
                 callback(rsa);
             }
         });
     }
 
 
-
     function continueDecrypting(recipientId, privKeyObj) {
-        defaultDatabase.ref('files/' + recipientId).once('value', function(snapshot) {
+        defaultDatabase.ref('files/' + recipientId).once('value', function (snapshot) {
 
-            snapshot.forEach(function(childSnapshot) {
+            snapshot.forEach(function (childSnapshot) {
 
                 var file = childSnapshot.val();
                 var fileID = childSnapshot.key;
-                console.log(fileID + ' - ' + file.fileName + ' - '+ file.sender +' - '+ file.userIdRecipient + '- ' + file.fileHash + ' - ' + file.symmetricKey);
+                console.log(fileID + ' - ' + file.fileName + ' - ' + file.sender + ' - ' + file.userIdRecipient + '- ' + file.fileHash + ' - ' + file.symmetricKey);
 
-                loadPublicKey(file.sender, function(publicKeySender, userIdPublicKey) {
+                loadPublicKey(file.sender, function (publicKeySender, userIdPublicKey) {
 
                     var storageRef = defaultStorage.ref('transfer_files/' + recipientId + '/' + file.fileName);
 
-                    storageRef.getDownloadURL().then(function(url){
+                    storageRef.getDownloadURL().then(function (url) {
 
                         console.log(url);
 
                         // This can be downloaded directly:
                         var xhr = new XMLHttpRequest();
                         xhr.responseType = 'text';
-                        xhr.onload = function(event) {
+                        xhr.onload = function (event) {
                             var text = xhr.response;
 
                             console.log(text);
@@ -480,7 +441,7 @@
                             // verify the Hash
                             var fileHashed = SHA256(fileDecrypted);
 
-                            if(publicKeySender.verifyString(fileHashed, file.fileHash)) {
+                            if (publicKeySender.verifyString(fileHashed, file.fileHash)) {
                                 alert("File hash OK!");
                                 console.log("File hash OK!");
                                 downloadFile(file.fileName, fileDecrypted);
