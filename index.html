@@ -5,26 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="assets/css/luxTheme-bootstrap.min.css">
     <title>File Transfer App</title>
-
-    <style>
-        .jumbotronBackground {
-            background-image: url("/assets/img/restaurant_icons.png");
-            background-size: cover;
-        }
-    </style>
 </head>
-
 
 
 <body>
 
 <header class="container">
     <div class="row">
-    <nav class="navbar bg-primary col-12">
-        <div class="container">
-            <a class="navbar-brand text-light" href="#">FileTransfer</a>
-        </div>
-    </nav>
+        <nav class="navbar bg-primary col-12">
+            <div class="container">
+                <a class="navbar-brand text-light" href="#">FileTransfer</a>
+            </div>
+        </nav>
     </div>
 </header>
 
@@ -34,70 +26,68 @@
 <section id="body" class="container">
 
     <div class="row">
-    <div class="jumbotron col-12">
-        <div class="container jumbotronBackground">
-        <form>
+        <div class="jumbotron col-12">
 
-            <fieldset>
-                <legend>Sign In</legend>
+            <form>
 
-                <div class="form-group form-inline">
-                    <!--<label for="emailInput" class="col-2">Email address</label>-->
-                    <input type="email" class="form-control col-4" id="emailInput" placeholder="my.email@example.com">
-                </div>
-                <div class="form-group form-inline">
-                    <!--<label for="passwordInput" class="col-2">Password</label>-->
-                    <input type="password" class="form-control col-4" id="passwordInput" placeholder="Password">
-                </div>
+                <fieldset>
+                    <legend>Sign In</legend>
 
-                <div class="row">
-                    <div class="container">
-                        <button type="button" class="btn btn-primary" id="btnLogin">Log In</button>
-                        <button type="button" class="btn btn-success" id="btnSignUp">Sign Up</button>
-                        <button type="button" class="btn btn-secondary" id="btnLogout">Log Out</button>
+                    <div class="form-group form-inline">
+                        <input type="email" class="form-control col-4" id="emailInput"
+                               placeholder="my.email@example.com">
                     </div>
-                </div>
-            </fieldset>
-        </form>
+                    <div class="form-group form-inline">
+                        <input type="password" class="form-control col-4" id="passwordInput" placeholder="Password">
+                    </div>
+
+                    <div class="row">
+                        <div class="container">
+                            <button type="button" class="btn btn-primary" id="btnLogin">Log In</button>
+                            <button type="button" class="btn btn-success" id="btnSignUp">Sign Up</button>
+                            <button type="button" class="btn btn-secondary" id="btnLogout">Log Out</button>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
         </div>
-    </div>
     </div>
 
     <div class="row">
-    <div class="jumbotron col-6">
-        <form>
+        <div class="jumbotron col-6">
+            <form>
 
-            <fieldset>
-                <legend>Send File</legend>
+                <fieldset>
+                    <legend>Send File</legend>
 
-                <div class="form-group form-inline">
-                    <!--<label for="recipientEmail" class="col-4">Email address</label>-->
-                    <input type="email" class="form-control col-8" id="recipientEmail" placeholder="recipient@example.com">
-                </div>
+                    <div class="form-group form-inline">
+                        <input type="email" class="form-control col-8" id="recipientEmail"
+                               placeholder="recipient@example.com">
+                    </div>
 
-                <div class="form-group form-inline">
-                    <input type="file" class="form-control-file" id="selectFileButton">
-                </div>
-                <div>
-                    <button type="submit" class="btn btn-success" id="upload">Send</button>
-                </div>
+                    <div class="form-group form-inline">
+                        <input type="file" class="form-control-file" id="selectFileButton">
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-success" id="upload">Send</button>
+                    </div>
 
-            </fieldset>
-        </form>
-    </div>
+                </fieldset>
+            </form>
+        </div>
 
-    <div class="jumbotron col-6">
-        <form>
+        <div class="jumbotron col-6">
+            <form>
 
-            <fieldset>
-                <legend>Download file(s)</legend>
+                <fieldset>
+                    <legend>Download file(s)</legend>
 
-                <div class="form-group">
-                    <input type="button" class="btn btn-success"value="Download files" id="listDownloads">
-                </div>
-            </fieldset>
-        </form>
-    </div>
+                    <div class="form-group">
+                        <input type="button" class="btn btn-success" value="Download files" id="listDownloads">
+                    </div>
+                </fieldset>
+            </form>
+        </div>
     </div>
 
 </section>
