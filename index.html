@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="assets/css/luxTheme-bootstrap.min.css">
     <title>File Transfer App</title>
+    <!--<style>-->
+    <!--.container {-->
+    <!--background-image: url('/assets/img/restaurant_icons.png');-->
+    <!--}-->
+    <!--</style>-->
 </head>
 
 
 <body>
-
 <header class="container">
     <div class="row">
         <nav class="navbar bg-primary col-12">
@@ -20,76 +24,47 @@
     </div>
 </header>
 
-
 </body>
 
-<section id="body" class="container">
+<section id="body">
+    <div class="container">
+        <h2>Sign In</h2>
+        <div class="form-group">
+            <input type="email" class="form-control col-md-4" id="emailInput" placeholder="my.email@example.com">
+        </div>
+        <div class="form-group">
+            <input type="password" class="form-control col-md-4" id="passwordInput" placeholder="Password">
+        </div>
 
-    <div class="row">
-        <div class="jumbotron col-12">
+        <div class="row">
+            <div class="container">
+                <button type="button" class="btn btn-primary" id="btnLogin">Log In</button>
+                <button type="button" class="btn btn-success" id="btnSignUp">Sign Up</button>
+                <button type="button" class="btn btn-secondary" id="btnLogout">Log Out</button>
+            </div>
+        </div>
+        <div class="row">
 
-            <form>
+            <div class="col-md-6">
+                <h2>Send file</h2>
+                <div class="form-group">
+                    <input type="email" class="form-control col-md-8" id="recipientEmail"
+                           placeholder="recipient@example.com">
+                </div>
+                <div class="form-group">
+                    <input type="file" class="form-control-file" id="selectFileButton">
+                </div>
+                <div>
+                    <input type="button" class="btn btn-success col-md-4" value="Send" id="upload"/>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h2>Download file</h2>
+                <input type="button" class="btn btn-success col-md-4" value="Download" id="listDownloads"/>
+            </div>
 
-                <fieldset>
-                    <legend>Sign In</legend>
-
-                    <div class="form-group form-inline">
-                        <input type="email" class="form-control col-4" id="emailInput"
-                               placeholder="my.email@example.com">
-                    </div>
-                    <div class="form-group form-inline">
-                        <input type="password" class="form-control col-4" id="passwordInput" placeholder="Password">
-                    </div>
-
-                    <div class="row">
-                        <div class="container">
-                            <button type="button" class="btn btn-primary" id="btnLogin">Log In</button>
-                            <button type="button" class="btn btn-success" id="btnSignUp">Sign Up</button>
-                            <button type="button" class="btn btn-secondary" id="btnLogout">Log Out</button>
-                        </div>
-                    </div>
-                </fieldset>
-            </form>
         </div>
     </div>
-
-    <div class="row">
-        <div class="jumbotron col-6">
-            <form>
-
-                <fieldset>
-                    <legend>Send File</legend>
-
-                    <div class="form-group form-inline">
-                        <input type="email" class="form-control col-8" id="recipientEmail"
-                               placeholder="recipient@example.com">
-                    </div>
-
-                    <div class="form-group form-inline">
-                        <input type="file" class="form-control-file" id="selectFileButton">
-                    </div>
-                    <div>
-                        <button type="submit" class="btn btn-success" id="upload">Send</button>
-                    </div>
-
-                </fieldset>
-            </form>
-        </div>
-
-        <div class="jumbotron col-6">
-            <form>
-
-                <fieldset>
-                    <legend>Download file(s)</legend>
-
-                    <div class="form-group">
-                        <input type="button" class="btn btn-success" value="Download files" id="listDownloads">
-                    </div>
-                </fieldset>
-            </form>
-        </div>
-    </div>
-
 </section>
 
 
