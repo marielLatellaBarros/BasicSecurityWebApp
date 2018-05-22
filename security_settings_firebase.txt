@@ -1,0 +1,20 @@
+{
+  "rules": {
+    "files" : {
+      "$uid": {
+        ".write": "$uid === auth.uid",
+        ".read": "$uid === auth.uid"
+      }
+    },
+    "private_keys" : {
+      "$uid": {
+        ".write": "$uid === auth.uid",
+        ".read": "$uid === auth.uid"
+      }
+    },
+    "public_keys" : {
+      ".read": true,
+      ".write": true
+    }
+  }
+}
