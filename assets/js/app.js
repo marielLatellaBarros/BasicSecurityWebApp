@@ -93,7 +93,6 @@
         });
     });
 
-    //TODO: log out button via FIREBASE? Check 'hide'doesn't work?
     // Add a realtime authentication listener
     defaultAuthentication.onAuthStateChanged(firebaseUser => {
         if (firebaseUser) {
@@ -350,7 +349,7 @@
             sender: emailSender
         };
         defaultDatabase.ref().child('files/' + userIdRecipient).push().set(postData);
-        console.log("Saved" + postData); //TODO: postdata shows nothing in log?
+        console.log("Saved" + postData);
     }
 
     ////////// **********  SYMMETRIC KEY & ENCRYPTION **********//////////
